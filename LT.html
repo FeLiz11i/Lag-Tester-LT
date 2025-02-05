@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Lag Tester (LT) </title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background-color: black;
+    overflow: hidden;
+    position: relative;
+    font-family: Arial, sans-serif;
+    color: white;
+  }
+  .fps-counter, .cube-count {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px;
+    font-size: 16px;
+    z-index: 10;
+  }
+  .cube-count {
+    top: 30px; /* Posición debajo del contador de FPS */
+  }
+  .slider-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+  }
+  .scene {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    perspective: 600px;
+  }
+  .cube {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: rotate 5s infinite linear;
+  }
+  .cube div {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border: 1px solid #ccc;
+  }
+  .front  { transform: translateZ(50px); }
+  .back   { transform: rotateY(180deg) translateZ(50px); }
+  .right  { transform: rotateY(90deg) translateZ(50px); }
+  .left   { transform: rotateY(-90deg) translateZ(50px); }
+  .top    { transform: rotateX(90deg) translateZ(50px); }
+  .bottom { transform: rotateX(-90deg) translateZ(50px); }
+
+  @keyframes rotate {
+    from { transform: rotateX(0deg) rotateY(0deg); }
+    to { transform: rotateX(360deg) rotateY(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="fps-counter" id="fps-counter">FPS: 0</div>
+<div class="cube-count" id="cube-count">1</div> <!-- Solo muestra el número de cubos -->
+<div class="slider-container">
+  <input type="range" id="cube-slider" min="1" max="175" value="1"> <!-- Comienza con 1 cubo -->
+</div>
+
+<script>
+  let lastFrameTime = Date.now();
+  let frameCount = 0;
+
+  function updateFPS() {
+    const now = Date.now();
+    const deltaTime = now - lastFrameTime;
+    lastFrameTime = now;
+    const fps = Math.round(1000 / deltaTime);
+    document.getElementById('fps-counter').textContent = 'FPS: ' + fps;
+    frameCount++;
+    requestAnimationFrame(updateFPS);
+  }
+
+  function randomColor() {
+    return 'rgba(' + Math.floor(Math.random() * 256) + ',' +
+                     Math.floor(Math.random() * 256) + ',' +
+                     Math.floor(Math.random() * 256) + ',0.8)';
+  }
+
+  function createCube() {
+    const scene = document.createElement('div');
+    scene.className = 'scene';
+    scene.style.top = Math.random() * window.innerHeight + 'px';
+    scene.style.left = Math.random() * window.innerWidth + 'px';
+
+    const cube = document.createElement('div');
+    cube.className = 'cube';
+    ['front', 'back', 'right', 'left', 'top', 'bottom'].forEach(faceClass => {
+      const face = document.createElement('div');
+      face.className = faceClass;
+      face.style.background = randomColor();
+      cube.appendChild(face);
+    });
+
+    scene.appendChild(cube);
+    document.body.appendChild(scene);
+  }
+
+  function generateCubes(numCubes) {
+    document.querySelectorAll('.scene').forEach(scene => scene.remove());
+    for (let i = 0; i < numCubes; i++) {
+      createCube();
+    }
+  }
+
+  const slider = document.getElementById('cube-slider');
+  const cubeCountDisplay = document.getElementById('cube-count');
+
+  slider.addEventListener('input', function() {
+    generateCubes(this.value);
+    cubeCountDisplay.textContent = this.value; // Actualiza solo con el número de cubos
+  });
+
+  // Iniciar el contador de FPS y generar cubos iniciales al cargar la página
+  window.onload = function() {
+    requestAnimationFrame(updateFPS);
+    generateCubes(slider.value);
+    cubeCountDisplay.textContent = slider.value; // Muestra solo el número de cubos
+  };
+</script>
+
+</body>
+</html>
